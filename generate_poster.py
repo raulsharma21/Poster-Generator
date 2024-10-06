@@ -1,55 +1,13 @@
-from PIL import Image
-from PIL import ImageDraw
-from PIL import ImageFont
-
-
-# def generatePoster(image):
-#     poster = Image.new('RGB', (2480, 3508), (222, 216, 206))
-
-#     img_resized = image.resize((2120, 2120))
-#     # poster.paste(img_resized, (150, 150, 2180, 3208))
-
-#     poster.paste(img_resized, (180, 180))
-
-#     # poster.show()
-
-#     # Generate a color palette with 5 colors
-#     paletted = image.convert('P', palette=Image.ADAPTIVE, colors=5)
-#     palette = paletted.getpalette()[:15]  # Get the first 15 values (5 colors, 3 values each)
-
-#     # Draw the palette graphic on the poster
-#     draw = ImageDraw.Draw(poster)
-#     block_size = 100  # Size of each color block
-#     padding = 10      # Padding between blocks
-#     start_x = 180     # Starting X position for the palette graphic
-#     start_y = 2500    # Starting Y position for the palette graphic
-
-#     for i in range(5):
-#         color = (palette[i*3], palette[i*3+1], palette[i*3+2])
-#         block_x = start_x + (block_size + padding) * i
-#         draw.rectangle([block_x, start_y, block_x + block_size, start_y + block_size], fill=color)
-
-#     # Show the poster with the image and palette graphic
-#     poster.show()
-
-    
-#     # # Custom font style and font size
-#     # myFont = ImageFont.truetype('FreeMono.ttf', 65)
-    
-#     # # Add Text to an image
-#     # I1.text((10, 10), "Nice Car", font=myFont, fill =(255, 0, 0))
-    
-#     # # Display edited image
-#     # img.show()
-    
-#     # # Save the edited image
-#     # img.save("car2.png")
-
+from PIL import Image, ImageDraw, ImageFont
 import math
 
 def color_distance(c1, c2):
     # Calculate Euclidean distance between two RGB colors
     return math.sqrt(sum((a - b) ** 2 for a, b in zip(c1, c2)))
+
+def hexToRGB(hex_color):
+    hex_color = hex_color.lstrip('#')  # Remove '#' if it's present
+    return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
 
 def pick_distinct_colors(palette, num_colors):
     # Extract RGB tuples from the palette
@@ -65,49 +23,95 @@ def pick_distinct_colors(palette, num_colors):
     
     return selected_colors
 
-def generatePoster(image, album_name, artist_name, tracklist):
-    # Create the poster with a background color
-    poster = Image.new('RGB', (2480, 3508), (222, 216, 206))
 
-    # Resize the image and paste it on the poster
-    img_resized = image.resize((2120, 2120))
-    poster.paste(img_resized, (180, 180))
+def resizeAndPasteImage(image, poster, size, position):
+    """Resize the image and paste it onto the poster."""
+    img_resized = image.resize(size)
+    poster.paste(img_resized, position)
+    return img_resized
 
-    # Generate a color palette with more colors to choose from
-    paletted = image.convert('P', palette=Image.ADAPTIVE, colors=20)
-    palette = paletted.getpalette()
+def drawLines(draw, y_positions, line_thickness=15, color=(0, 0, 0)):
+    """Draw lines at specified positions."""
+    width = 2120
+    x_start = 180
+    for y_position in y_positions:
+        draw.line([(x_start, y_position), (x_start + width, y_position)], fill=color, width=line_thickness)
 
-    # Pick 5 distinct colors from the palette
-    distinct_colors = pick_distinct_colors(palette, 5)
-
-    # Draw the palette graphic on the poster
-    draw = ImageDraw.Draw(poster)
-    block_height = 60  # Height of each color block
-    block_width = 210   # Width of each color block
-    start_x = 1240       # Starting X position for the palette graphic
-    start_y = 2400      # Starting Y position for the palette graphic
-
+def drawColorPalette(draw, distinct_colors, start_x, start_y, block_width, block_height):
+    """Draw color palette blocks."""
     for i, color in enumerate(distinct_colors):
         block_x = start_x + block_width * i
         draw.rectangle([block_x, start_y, block_x + block_width, start_y + block_height], fill=color)
 
-    # Load the font
-    font_path = "./DrukWideBold.ttf"
-    font_title = ImageFont.truetype(font_path, 80, encoding="unic")
-    font_subtitle = ImageFont.truetype(font_path, 50, encoding="unic")
-    font_text = ImageFont.truetype(font_path, 40, encoding="unic")
+def rightAlignText(draw, text, font, right_align_x, y_position, color=(0, 0, 0)):
+    """Draw right-aligned text."""
+    text_bbox = draw.textbbox((0, 0), text, font=font)
+    text_width = text_bbox[2] - text_bbox[0]
+    text_x = right_align_x - text_width
+    draw.text((text_x, y_position), text, font=font, fill=color)
+
+def calculateTracklistSpacing(start_y, end_y, num_tracks):
+    """Calculate dynamic spacing for the tracklist."""
+    if num_tracks < 5:
+        extra_margin = (5 - num_tracks) * 200
+        start_y += extra_margin // 2
+        end_y -= extra_margin // 2
+    available_height = end_y - start_y
+    return available_height // num_tracks, start_y
+
+def drawTracklist(draw, tracklist, font, start_y, end_y, color=(0, 0, 0)):
+    """Draw the tracklist with dynamic spacing."""
+    tracklist_spacing, tracklist_y_position = calculateTracklistSpacing(start_y, end_y, len(tracklist))
+    for track in tracklist:
+        draw.text((180, tracklist_y_position), track, font=font, fill=color)
+        tracklist_y_position += tracklist_spacing
+
+def generatePoster(bg_color, image, album_name, artist_name, tracklist, scannable, copyright_text):
+    """Main function to generate the poster."""
+    # Create the poster
+    rgb_color = hexToRGB(bg_color)
+    poster = Image.new('RGB', (2480, 3508), rgb_color)
+    draw = ImageDraw.Draw(poster)
+
+    # Resize and paste the image
+    resizeAndPasteImage(image, poster, (2120, 2120), (180, 130))
+
+    # Draw lines
+    drawLines(draw, [70, 3450])
+
+    # Generate color palette
+    paletted = image.convert('P', palette=Image.ADAPTIVE, colors=20)
+    palette = paletted.getpalette()
+    distinct_colors = pick_distinct_colors(palette, 5)
+
+    # Draw color palette
+    drawColorPalette(draw, distinct_colors, start_x=1240, start_y=2400, block_width=210, block_height=40)
+
+    bold_path = "./kollektif/Kollektif-Bold.ttf"
+    heavy_path = "./kollektif/Kollektif-Bold.ttf"
+    regular_path = "./kollektif/Kollektif.ttf"
+    italic_path = "./kollektif/Kollektif-Italic.ttf"
+    
+    font_title = ImageFont.truetype(heavy_path, 120, encoding="unic")
+    font_subtitle = ImageFont.truetype(bold_path, 120, encoding="unic")
+    font_text = ImageFont.truetype(regular_path, 40, encoding="unic")
+    font_italic = ImageFont.truetype(italic_path, 30, encoding="unic")
+
+    # Right-align artist and album name
+    right_align_x = 2480 - 180  # Define the rightmost alignment position
+    rightAlignText(draw, artist_name, font_subtitle, right_align_x, 2550)
+    rightAlignText(draw, album_name, font_title, right_align_x, 2740)
+
+    # Draw tracklist
+    drawTracklist(draw, tracklist, font_text, start_y=2330, end_y=3420)
+
+    # Draw scannable
+    scannable_width, scannable_height = scannable.size
+    poster.paste(scannable, (right_align_x - scannable_width, 3230))
 
 
-    # Draw the artist name
-    draw.text((180, 2400), artist_name, font=font_subtitle, fill=(0, 0, 0))
+    # Draw copyright text
+    rightAlignText(draw, copyright_text, font_italic, right_align_x, 3380)
 
-    # Draw the album name
-    draw.text((180, 2550), album_name, font=font_title, fill=(0, 0, 0))
-
-    # Draw the tracklist
-    tracklist_text = "\n".join(tracklist)
-    draw.text((180, 2650), tracklist_text, font=font_text, fill=(0, 0, 0))
-
-    # Show the poster with the image and palette graphic
+    # Show the poster
     poster.show()
-
