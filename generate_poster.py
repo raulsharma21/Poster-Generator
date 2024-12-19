@@ -109,7 +109,6 @@ def generatePoster(bg_color, image, album_name, artist_name, tracklist, scannabl
     scannable_width, scannable_height = scannable.size
     poster.paste(scannable, (right_align_x - scannable_width, 3230))
 
-
     # Draw copyright text
     rightAlignText(draw, copyright_text, font_italic, right_align_x, 3380)
 

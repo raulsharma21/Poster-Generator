@@ -174,7 +174,7 @@ bg_color = 'DED8CE'  # white background
 
 
 token = getToken()
-search_result = search(token, 'album', "Zach Bryan", limit=3)
+search_result = search(token, 'album', "tom petty", limit=5)
 images = getImages(search_result)
 albums = getAlbumNames(search_result)
 artists = getArtistNames(search_result)
