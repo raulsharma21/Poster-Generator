@@ -155,9 +155,8 @@ def getScannables(search_result, bg_color: str):
     for result in search_result:
         spotify_uri = result['uri']
         url = f"https://scannables.scdn.co/uri/plain/{format}/{bg_color}/{code_color}/{size}/{spotify_uri}"
-
         response = requests.get(url)
-
+        
         if response.status_code == 200:
             img = Image.open(BytesIO(response.content))
             scannables.append(img)
@@ -174,7 +173,7 @@ bg_color = 'DED8CE'  # white background
 
 
 token = getToken()
-search_result = search(token, 'album', "tom petty", limit=5)
+search_result = search(token, 'album', "alas ka ped", limit=1)
 images = getImages(search_result)
 albums = getAlbumNames(search_result)
 artists = getArtistNames(search_result)
@@ -184,4 +183,5 @@ copyrights = album_info['copyrights']
 scannables = getScannables(search_result, bg_color)
 
 for i in range(len(images)): 
+    print(tracklists[i][0])
     generatePoster(bg_color, images[i], albums[i], artists[i], tracklists[i], scannables[i], copyrights[i])

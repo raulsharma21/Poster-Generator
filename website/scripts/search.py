@@ -9,15 +9,9 @@ from requests import post, get
 
 load_dotenv()
 
-# search_script.py
+def debug(message):
+    print(f"DEBUG: {message}", file=sys.stderr)
 
-import base64
-import json
-import os
-from dotenv import load_dotenv
-from requests import post, get
-
-load_dotenv()
 
 def getToken():
     auth_string = os.getenv('CLIENT_ID') + ":" + os.getenv('CLIENT_SECRET')
@@ -77,6 +71,7 @@ def getSearchResultAsJson(query, limit=8):
                 "album_name": album['name'],
                 "artist_name": album['artists'][0]['name'] if album['artists'] else "Unknown Artist",
                 "cover_url": album['images'][0]['url'] if album['images'] else None
+
             }
             albums_data.append(album_data)
         
@@ -85,16 +80,60 @@ def getSearchResultAsJson(query, limit=8):
     # Return structured error if no results
     return json.dumps({"error": {"message": "No results found.", "query": query}})
 
-def main(query, quantity):
 
+def getAlbumInfo(id):
+    album_name = ''
+    artist_name = ''
+    cover_url = ''
+    tracklist = []
+    copyright = ''
+
+    token = getToken()
+        
+    url = f"https://api.spotify.com/v1/albums/{id}"
+    headers = getAuthHeader(token)
+    response = get(url, headers=headers)
+
+    if response.status_code == 200:
+        album_name = response.json()['name']
+
+        artist_name = response.json()['artists'][0]['name']
+
+        cover_url = response.json()['images'][0]['url']
+
+        # extract the list of songs
+        album = response.json()['tracks']['items']
+        for song in album:
+            tracklist.append(song['name'])
+
+        # extract the copyright text
+        copyrights = response.json()['copyrights']
+        copyright = copyrights[0]['text']
+
+
+    else:
+        return json.dumps({"error": {"message": "No results found.", "query": query}})
+
+    album_info = {"album-name":album_name, "artist-name": artist_name, "cover-url": cover_url, "tracklist": tracklist, "copyright": copyright}
+
+    print(json.dumps(album_info))
+
+
+def main(query, quantity):
     json_result = getSearchResultAsJson(query, quantity)
     print(json_result)  # Print the result to stdout for the route to capture
 
+    
+
 if __name__ == "__main__":
-    # Expecting query as the first argument from the command line
-    if len(sys.argv) > 2:
-        query = sys.argv[1]
-        quantity = sys.argv[2]
+    if sys.argv[1] == 'search':
+        query = sys.argv[2]
+        quantity = sys.argv[3]
         main(query, quantity)
+
+    elif sys.argv[1] == 'get-info':
+        id = sys.argv[2]
+        getAlbumInfo(id)
+
     else:
         print(json.dumps({"error": "No query provided."}))

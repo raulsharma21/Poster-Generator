@@ -5,16 +5,15 @@ import path from 'path';
 export async function GET(request: Request) {
   // Extract query parameter
   const { searchParams } = new URL(request.url);
-  const query = searchParams.get('query');
-
-  if (!query) {
-    return NextResponse.json({ error: 'No query provided.' }, { status: 400 });
+  const id = searchParams.get('id');
+  if (!id) {
+    return NextResponse.json({ error: 'ID missing.' }, { status: 400 });
   }
 
   const scriptPath = path.join(process.cwd(), 'scripts', 'search.py');
 
   return new Promise((resolve, reject) => {
-    const pythonProcess = spawn('python3', [scriptPath, query]);
+    const pythonProcess = spawn('python3', [scriptPath, 'get-info', id]);
 
     let output = '';
 

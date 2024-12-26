@@ -98,25 +98,38 @@ export function HomepageComponent() {
   };
 
   const generatePoster = async () => {
-    if (selectedResult) {
-      const selectedAlbum = searchResults.find((result) => result.id === selectedResult);
-      if (selectedAlbum) {
-        console.log("Selected Album:", selectedAlbum);
-      } else {
-        console.error("No matching album found for the selected ID.");
-      }
-    } else {
-      console.error("Cannot generate poster, no album is selected.");
-    }
-
     try {
-
-    }
-    catch (error) {
-      console.error("Error with the ")
+      const selectedAlbum = searchResults.find((result) => result.id === selectedResult);
+      if (!selectedAlbum) {
+        console.error("Cannot generate poster, no album is selected.");
+        return;
+      }
+  
+      // Create session
+      const response = await fetch('/api/session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          albumId: selectedAlbum.id
+        })
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to create session');
+      }
+  
+      const { sessionId } = await response.json();
+  
+      // Navigate to customize page with session ID
+      window.location.href = `/customize/${sessionId}`;
+      
+    } catch (error) {
+      console.error("Error generating poster:", error);
+      // Show an error message to the user here
     }
   };
-
 
 
   return (

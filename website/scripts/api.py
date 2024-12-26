@@ -155,7 +155,6 @@ def getScannables(search_result, bg_color: str):
     for result in search_result:
         spotify_uri = result['uri']
         url = f"https://scannables.scdn.co/uri/plain/{format}/{bg_color}/{code_color}/{size}/{spotify_uri}"
-
         response = requests.get(url)
 
         if response.status_code == 200:

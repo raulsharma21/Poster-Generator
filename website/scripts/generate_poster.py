@@ -1,5 +1,15 @@
+import base64
 from PIL import Image, ImageDraw, ImageFont
 import math
+import sys
+import json
+from io import BytesIO
+
+import requests
+
+def debug(message):
+    print(f"DEBUG: {message}", file=sys.stderr)
+
 
 def color_distance(c1, c2):
     # Calculate Euclidean distance between two RGB colors
@@ -61,6 +71,7 @@ def calculateTracklistSpacing(start_y, end_y, num_tracks):
 
 def drawTracklist(draw, tracklist, font, start_y, end_y, color=(0, 0, 0)):
     """Draw the tracklist with dynamic spacing."""
+    debug(tracklist[0])
     tracklist_spacing, tracklist_y_position = calculateTracklistSpacing(start_y, end_y, len(tracklist))
     for track in tracklist:
         draw.text((180, tracklist_y_position), track, font=font, fill=color)
@@ -88,12 +99,12 @@ def generatePoster(bg_color, image, album_name, artist_name, tracklist, scannabl
     drawColorPalette(draw, distinct_colors, start_x=1240, start_y=2400, block_width=210, block_height=40)
 
     import os
-    print("Current working directory:", os.getcwd())
+    # print("Current working directory:", os.getcwd())
 
-    bold_path = "../fonts/kollektif/Kollektif-Bold.ttf"
-    heavy_path = "../fonts/kollektif/Kollektif-Bold.ttf"
-    regular_path = "../fonts/kollektif/Kollektif.ttf"
-    italic_path = "../fonts/kollektif/Kollektif-Italic.ttf"
+    bold_path = "./public/fonts/kollektif/Kollektif-Bold.ttf"
+    heavy_path = "./public/fonts/kollektif/Kollektif-Bold.ttf"
+    regular_path = "./public/fonts/kollektif/Kollektif.ttf"
+    italic_path = "./public/fonts/kollektif/Kollektif-Italic.ttf"
     
     font_title = ImageFont.truetype(heavy_path, 120, encoding="unic")
     font_subtitle = ImageFont.truetype(bold_path, 120, encoding="unic")
@@ -116,5 +127,23 @@ def generatePoster(bg_color, image, album_name, artist_name, tracklist, scannabl
     # Draw copyright text
     rightAlignText(draw, copyright_text, font_italic, right_align_x, 3380)
 
-    # Show the poster
-    poster.show()
+    img_io = BytesIO()
+    poster.save(img_io, 'JPEG')
+    img_io.seek(0)
+    
+    # Return the image as bytes
+    return img_io.read()
+
+
+if __name__ == "__main__":
+    album_name = sys.argv[1]
+    artist_name = sys.argv[2]
+    tracklist = json.loads(sys.argv[3])
+    copyright_text = sys.argv[4]
+    scannable = Image.open(BytesIO(base64.b64decode(sys.argv[6])))
+    image = Image.open(BytesIO(base64.b64decode(sys.argv[5])))
+    bg_color = 'DED8CE'
+    
+
+    poster_bytes = generatePoster(bg_color, image, album_name, artist_name, tracklist, scannable, copyright_text)
+    sys.stdout.buffer.write(poster_bytes)
