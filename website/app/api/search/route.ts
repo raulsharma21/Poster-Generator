@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { spawn } from 'child_process';
 import path from 'path';
 
-export async function GET(request: Request) {
+export async function GET(request: Request): Promise<Response> {
   // Extract query parameter
   const { searchParams } = new URL(request.url);
   const query = searchParams.get('query');
@@ -14,7 +14,7 @@ export async function GET(request: Request) {
 
   const scriptPath = path.join(process.cwd(), 'scripts', 'search.py');
 
-  return new Promise((resolve, reject) => {
+  return new Promise<Response>((resolve) => {
     const pythonProcess = spawn('python3', [scriptPath, 'search', query, quantity]);
 
     let output = '';
@@ -26,7 +26,7 @@ export async function GET(request: Request) {
       if (code === 0) {
         resolve(NextResponse.json({ result: output }, { status: 200 }));
       } else {
-        reject(NextResponse.json({ error: 'Python script failed' }, { status: 500 }));
+        resolve(NextResponse.json({ error: 'Python script failed' }, { status: 500 }));
       }
     });
   });

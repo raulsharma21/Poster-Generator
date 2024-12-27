@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 import { sessions, PosterSession } from '@/lib/session-storage';
 
-export async function fetchAlbumData(albumId: string) {
+async function fetchAlbumData(albumId: string) {
   try {
     const response = await fetch(`http://localhost:3000/api/get-info?id=${albumId}`);
     

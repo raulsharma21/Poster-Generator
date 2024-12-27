@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import Image from 'next/image'
-import debounce from 'lodash/debounce'
 
 interface AlbumData {
     album_name: string;
@@ -214,7 +213,7 @@ export default function Customizer() {
                     >
                         Download Poster
                     </Button>
-                    
+
                 </div>
             </div>
         </div>

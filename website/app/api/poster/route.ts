@@ -3,7 +3,7 @@ import { spawn } from 'child_process';
 import path from 'path';
 import { sessions } from '@/lib/session-storage';
 
-export async function GET(request: Request) {
+export async function GET(request: Request): Promise<Response> {
   const { searchParams } = new URL(request.url);
   const sessionId = searchParams.get('id');
 
@@ -28,9 +28,8 @@ export async function GET(request: Request) {
     }
 
     const sessionData = await sessionResponse.json();
-    const { album_data, customization } = sessionData;
+    const { album_data } = sessionData;
 
-    // Fetch image and scannable data before spawning Python process
     const [imageData, scannableResponse] = await Promise.all([
       getImage(album_data.cover_url),
       getScannable(album_data.id)
@@ -39,13 +38,9 @@ export async function GET(request: Request) {
     if (!scannableResponse.success) {
       throw new Error(`Failed to get scannable: ${scannableResponse.error}`);
     }
-    
 
-    // Convert scannable data to base64
     const scannableBase64 = Buffer.from(scannableResponse.data).toString('base64');
-
     const scriptPath = path.join(process.cwd(), 'scripts', 'generate_poster.py');
-
 
     return new Promise((resolve, reject) => {
       const pythonProcess = spawn('python3', [
@@ -54,7 +49,7 @@ export async function GET(request: Request) {
         album_data.artist_name,
         JSON.stringify(album_data.tracklist),
         album_data.copyright_text,
-        Buffer.from(imageData).toString('base64'), // Convert image data to base64
+        Buffer.from(imageData).toString('base64'),
         scannableBase64
       ]);
 
@@ -72,11 +67,10 @@ export async function GET(request: Request) {
           response.headers.set('Content-Type', 'image/png');
           resolve(response);
         } else {
-          reject(NextResponse.json({ error: 'Python script failed or no image data' }, { status: 500 }));
+          reject(new NextResponse(JSON.stringify({ error: 'Python script failed or no image data' }), { status: 500 }));
         }
       });
     });
-
   } catch (error) {
     console.error('Error:', error);
     return NextResponse.json({ error: 'Failed to process request' }, { status: 500 });
@@ -98,15 +92,15 @@ async function getScannable(id: string, bg_color: string = 'DED8CE'): Promise<Sc
   try {
     const url = `https://scannables.scdn.co/uri/plain/${format}/${bg_color}/${code_color}/${size}/${spotify_uri}`;
     const response = await fetch(url);
-    
+
     if (response.ok) {
       const arrayBuffer = await response.arrayBuffer();
       const uint8Array = new Uint8Array(arrayBuffer);
-      
+
       // Verify PNG signature
       const pngSignature = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
       const isPNG = pngSignature.every((byte, i) => uint8Array[i] === byte);
-      
+
       if (!isPNG) {
         console.error("Invalid PNG data received from Spotify API");
         return {
@@ -115,7 +109,7 @@ async function getScannable(id: string, bg_color: string = 'DED8CE'): Promise<Sc
           error: 'Invalid PNG format'
         };
       }
-      
+
       return {
         data: uint8Array,
         success: true
