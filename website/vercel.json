@@ -1,0 +1,12 @@
+{
+    "builds": [
+      {
+        "src": "pages/api/**/*.js",
+        "use": "@vercel/node"
+      },
+      {
+        "src": "scripts/**/*.py",
+        "use": "@vercel/python"
+      }
+    ]
+  }
