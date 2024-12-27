@@ -15,7 +15,7 @@ export async function GET(request: Request): Promise<Response> {
   const scriptPath = path.join(process.cwd(), 'scripts', 'search.py');
 
   return new Promise<Response>((resolve) => {
-    const pythonProcess = spawn('python3', [scriptPath, 'search', query, quantity]);
+    const pythonProcess = spawn('python', [scriptPath, 'search', query, quantity]);
 
     let output = '';
 
