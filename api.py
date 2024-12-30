@@ -173,7 +173,7 @@ bg_color = 'DED8CE'  # white background
 
 
 token = getToken()
-search_result = search(token, 'album', "alas ka ped", limit=1)
+search_result = search(token, 'album', "dua lipa", limit=5)
 images = getImages(search_result)
 albums = getAlbumNames(search_result)
 artists = getArtistNames(search_result)

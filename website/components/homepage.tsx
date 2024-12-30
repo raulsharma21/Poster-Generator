@@ -39,25 +39,23 @@ export function HomepageComponent() {
     setPage(1); // Reset to the first page for a new search
     setSearchResults([]); // Clear previous results
     setIsLoading(true) // Start loading
-
     try {
+      
       const response = await fetch(`/api/search?query=${encodeURIComponent(searchQuery)}&quantity=8`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
       });
-
+      
       if (response.ok) {
-        const rawData = await response.json();
-        const data = JSON.parse(rawData.result);
+        const data = await response.json();  // This already gives you a parsed object
         if (data.error) {
           console.error("Error parsing JSON search results:", data.error.message);
         } else {
-          setSearchResults(data.albums);
+          // Access the albums through the result key
+          setSearchResults(data.result.albums);  // Changed from data.albums to data.result.albums
         }
-      } else {
-        console.error("Error fetching search results, response not OK.");
       }
     } catch (error) {
       console.error("Fetch error:", error);

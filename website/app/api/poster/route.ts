@@ -39,41 +39,49 @@ export async function GET(request: Request): Promise<Response> {
       throw new Error(`Failed to get scannable: ${scannableResponse.error}`);
     }
 
+    // Convert image data to base64
+    const imageBase64 = Buffer.from(imageData).toString('base64');
     const scannableBase64 = Buffer.from(scannableResponse.data).toString('base64');
-    const scriptPath = path.join(process.cwd(), 'scripts', 'generate_poster.py');
 
-    return new Promise((resolve, reject) => {
-      const pythonProcess = spawn('python3', [
-        scriptPath,
-        album_data.album_name,
-        album_data.artist_name,
-        JSON.stringify(album_data.tracklist),
-        album_data.copyright_text,
-        Buffer.from(imageData).toString('base64'),
-        scannableBase64
-      ]);
-
-      let imageBuffer: Buffer | null = null;
-
-      pythonProcess.stdout.on('data', (data) => {
-        imageBuffer = imageBuffer ? Buffer.concat([imageBuffer, data]) : data;
-      });
-
-      pythonProcess.stderr.on('data', (data) => console.error(`Python Error: ${data.toString()}`));
-
-      pythonProcess.on('close', (code) => {
-        if (code === 0 && imageBuffer) {
-          const response = new NextResponse(imageBuffer);
-          response.headers.set('Content-Type', 'image/png');
-          resolve(response);
-        } else {
-          reject(new NextResponse(JSON.stringify({ error: 'Python script failed or no image data' }), { status: 500 }));
-        }
-      });
+    // Make POST request to Flask endpoint with data in body
+    const posterResponse = await fetch('http://127.0.0.1:5000/poster', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        album_name: album_data.album_name,
+        artist_name: album_data.artist_name,
+        tracklist: album_data.tracklist || '',
+        copyright_text: album_data.copyright_text || '',
+        scannable: scannableBase64,
+        image: imageBase64
+      })
     });
+
+    if (!posterResponse.ok) {
+      const errorText = await posterResponse.text();
+      throw new Error(`Failed to generate poster: ${errorText}`);
+    }
+
+    // Get the poster image data as an array buffer
+    const posterData = await posterResponse.arrayBuffer();
+
+    // Return the poster image
+    return new Response(posterData, {
+      headers: {
+        'Content-Type': 'image/jpeg',
+        'Content-Length': Buffer.byteLength(posterData).toString(),
+        'Cache-Control': 'no-cache',
+      },
+    });
+
   } catch (error) {
-    console.error('Error:', error);
-    return NextResponse.json({ error: 'Failed to process request' }, { status: 500 });
+    console.error('Error generating poster:', error);
+    return NextResponse.json(
+      { error: 'Failed to generate poster', details: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 500 }
+    );
   }
 }
 

@@ -12,22 +12,46 @@ export async function GET(request: Request): Promise<Response> {
     return NextResponse.json({ error: 'Part of query missing.' }, { status: 400 });
   }
 
-  const scriptPath = path.join(process.cwd(), 'scripts', 'search.py');
+  const base_url = 'http://127.0.0.1:5000';
+  try {
+    const response = await fetch(
+      `${base_url}/search?type=search&query=${query}&quantity=${quantity}`
+    );
 
-  return new Promise<Response>((resolve) => {
-    const pythonProcess = spawn('python', [scriptPath, 'search', query, quantity]);
+    if (!await response.ok) {
+      return NextResponse.json(
+        { error: 'Failed to fetch data.' },
+        { status: response.status }
+      );
+    }
 
-    let output = '';
+    const data = await response.json();
+    return NextResponse.json({ result: data }, { status: 200 })
 
-    pythonProcess.stdout.on('data', (data) => (output += data.toString()));
-    pythonProcess.stderr.on('data', (data) => console.error(`Python Error: ${data.toString()}`));
-
-    pythonProcess.on('close', (code) => {
-      if (code === 0) {
-        resolve(NextResponse.json({ result: output }, { status: 200 }));
-      } else {
-        resolve(NextResponse.json({ error: 'Python script failed' }, { status: 500 }));
-      }
-    });
-  });
+  } catch (error: unknown) {
+    return NextResponse.json(
+      { error: 'Failed to fetch data.', details: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 500 }
+    );
+  }
 }
+
+
+// const scriptPath = path.join(process.cwd(), 'scripts', 'search.py');
+
+// return new Promise<Response>((resolve) => {
+//   const pythonProcess = spawn('python', [scriptPath, 'search', query, quantity]);
+
+//   let output = '';
+
+//   pythonProcess.stdout.on('data', (data) => (output += data.toString()));
+//   pythonProcess.stderr.on('data', (data) => console.error(`Python Error: ${data.toString()}`));
+
+//   pythonProcess.on('close', (code) => {
+//     if (code === 0) {
+//       resolve(NextResponse.json({ result: output }, { status: 200 }));
+//     } else {
+//       resolve(NextResponse.json({ error: 'Python script failed' }, { status: 500 }));
+//     }
+//   });
+// });

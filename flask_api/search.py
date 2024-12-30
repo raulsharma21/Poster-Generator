@@ -13,9 +13,7 @@ def debug(message):
 
 def getToken():
     load_dotenv()
-    debug(os.getenv('CLIENT_ID'))
-    debug(os.getenv('TEST'))
-    auth_string = os.getenv('CLIENT_ID') + ":" + os.getenv('CLIENT_SECRET')
+    auth_string = os.getenv('ID') + ":" + os.getenv('SEC')
     auth_bytes = auth_string.encode("utf-8")
     auth_base64 = str(base64.b64encode(auth_bytes), "utf-8")
 
@@ -117,24 +115,4 @@ def getAlbumInfo(id):
 
     album_info = {"album-name":album_name, "artist-name": artist_name, "cover-url": cover_url, "tracklist": tracklist, "copyright": copyright}
 
-    print(json.dumps(album_info))
-
-
-def main(query, quantity):
-    json_result = getSearchResultAsJson(query, quantity)
-    print(json_result)  # Print the result to stdout for the route to capture
-
-    
-
-if __name__ == "__main__":
-    if sys.argv[1] == 'search':
-        query = sys.argv[2]
-        quantity = sys.argv[3]
-        main(query, quantity)
-
-    elif sys.argv[1] == 'get-info':
-        id = sys.argv[2]
-        getAlbumInfo(id)
-
-    else:
-        print(json.dumps({"error": "No query provided."}))
+    return(json.dumps(album_info))
