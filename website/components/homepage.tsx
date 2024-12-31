@@ -134,8 +134,8 @@ export function HomepageComponent() {
 
   return (
     <div className="min-h-screen bg-smoky_black-100 text-alabaster-600">
-      <header className="py-12">
-        <h1 className="wosker text-4xl font-bold text-center text-[#e5e5dc]">PosterOven</h1>
+      <header className="pt-20 py-12">
+        <h1 className="wosker text-xl font-semi text-center text-[#e5e5dc]">PosterOven</h1>
       </header>
 
       <main className="container mx-auto px-4 py-8">
@@ -145,9 +145,21 @@ export function HomepageComponent() {
               type="search"
               name="search"
               placeholder="Search for albums or artists"
+              autoComplete='off'
               className="w-full max-w-2xl text-lg py-6 bg-[#191308] text-[#e5e5dc] border-[#322a26] placeholder-[#988d93]"
             />
           </form>
+
+          <div className="text-center mt-8">
+                  <Button
+                    size="lg"
+                    onClick={generatePoster}
+                    disabled={!selectedResult}
+                    className={`px-8 py-4 text-lg ${selectedResult ? 'bg-[#f5853f] hover:bg-[#f79c64] text-[#050401]' : 'bg-[#322a26] text-[#988d93]'}`}
+                  >
+                    Generate Poster
+                  </Button>
+                </div>
 
           {isLoading ? (
             <div className="flex justify-center items-center mt-8">
@@ -163,6 +175,10 @@ export function HomepageComponent() {
                       key={result.id}
                       className={`cursor-pointer transition-all duration-300 hover:bg-[#322a26] ${selectedResult === result.id ? 'bg-[#322a26]' : 'bg-[#191308]'}`}
                       onClick={() => setSelectedResult(result.id)}
+                      onDoubleClick={() => {
+                        setSelectedResult(result.id); // Ensure it's selected
+                        generatePoster(); // Call the poster generation handler
+                      }}
                     >
                       <CardContent className="p-4 rounded-lg">
                         <Image
@@ -190,16 +206,7 @@ export function HomepageComponent() {
                   </Button>
                 </div>
 
-                <div className="text-center mt-8">
-                  <Button
-                    size="lg"
-                    onClick={generatePoster}
-                    disabled={!selectedResult}
-                    className={`px-8 py-4 text-lg ${selectedResult ? 'bg-[#f5853f] hover:bg-[#f79c64] text-[#050401]' : 'bg-[#322a26] text-[#988d93]'}`}
-                  >
-                    Generate Poster
-                  </Button>
-                </div>
+                
               </div>
             )
           )}
