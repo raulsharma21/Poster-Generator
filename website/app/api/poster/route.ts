@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { sessions } from '@/lib/session-storage';
 
+const client_url = 'https://posteroven.vercel.app';
+
 export async function GET(request: Request): Promise<Response> {
   const { searchParams } = new URL(request.url);
   const sessionId = searchParams.get('id');
@@ -19,7 +21,7 @@ export async function GET(request: Request): Promise<Response> {
   }
 
   try {
-    const sessionResponse = await fetch(`http://localhost:3000/api/session?id=${sessionId}`);
+    const sessionResponse = await fetch(`${client_url}/api/session?id=${sessionId}`);
 
     if (!sessionResponse.ok) {
       throw new Error('Failed to fetch session data');
