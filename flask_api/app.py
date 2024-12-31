@@ -12,7 +12,7 @@ import base64
   
 # creating a Flask app 
 app = Flask(__name__) 
-CORS(app)
+# CORS(app)
   
 # on the terminal type: curl http://127.0.0.1:5000/ 
 # returns hello world when we use GET. 
@@ -81,5 +81,4 @@ def generate():
   
 # driver function 
 if __name__ == '__main__': 
-  
-    app.run(debug = True) 
+    app.run() 
