@@ -44,7 +44,7 @@ export async function GET(request: Request): Promise<Response> {
     const scannableBase64 = Buffer.from(scannableResponse.data).toString('base64');
 
     // Make POST request to Flask endpoint with data in body
-    const posterResponse = await fetch('http://127.0.0.1:5000/poster', {
+    const posterResponse = await fetch('https://harsh-myriam-posteroven-366b0757.koyeb.app/poster', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

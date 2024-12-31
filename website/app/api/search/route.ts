@@ -12,7 +12,7 @@ export async function GET(request: Request): Promise<Response> {
     return NextResponse.json({ error: 'Part of query missing.' }, { status: 400 });
   }
 
-  const base_url = 'http://127.0.0.1:5000';
+  const base_url = 'https://harsh-myriam-posteroven-366b0757.koyeb.app/';
   try {
     const response = await fetch(
       `${base_url}/search?type=search&query=${query}&quantity=${quantity}`
