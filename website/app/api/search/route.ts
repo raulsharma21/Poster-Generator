@@ -1,6 +1,4 @@
 import { NextResponse } from 'next/server';
-import { spawn } from 'child_process';
-import path from 'path';
 
 export async function GET(request: Request): Promise<Response> {
   // Extract query parameter
