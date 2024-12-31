@@ -36,7 +36,6 @@ export async function POST(request: Request) {
     console.log('Creating session for album:', albumId);
 
     const albumData = await fetchAlbumData(albumId);
-    // console.log('Album Info:\n', albumData);
 
     const sessionId = uuidv4();
     const session: PosterSession = {
@@ -50,14 +49,8 @@ export async function POST(request: Request) {
       }
     };
 
-    sessions.set(sessionId, session);
-
-    setTimeout(() => {
-      sessions.delete(sessionId);
-    }, 30 / 60 * 60 * 60 * 1000); // 5 minutes for testing
-
+    await sessions.set(sessionId, session);
     console.log(`Session created with id: ${sessionId}`);
-    console.log('Current sessions:', sessions.size);
 
     return NextResponse.json({ sessionId, session });
 
@@ -78,9 +71,8 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Session ID required' }, { status: 400 });
   }
 
-  const session = sessions.get(sessionId);
+  const session = await sessions.get(sessionId);
   console.log(`Getting session ${sessionId}`, session ? 'found' : 'not found');
-  console.log('Current sessions:', sessions.size);
 
   if (!session) {
     return NextResponse.json(
@@ -94,7 +86,7 @@ export async function GET(request: Request) {
 
 export async function PUT(request: Request) {
   const { sessionId, updates } = await request.json();
-  const session = sessions.get(sessionId);
+  const session = await sessions.get(sessionId);
 
   if (!session) {
     return NextResponse.json({ error: 'Session not found' }, { status: 404 });
@@ -106,7 +98,7 @@ export async function PUT(request: Request) {
     ...updates
   };
 
-  sessions.set(sessionId, updatedSession);
+  await sessions.set(sessionId, updatedSession);
   console.log(`Updated session ${sessionId}`);
 
   return NextResponse.json(updatedSession);

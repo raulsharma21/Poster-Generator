@@ -1,4 +1,6 @@
 // lib/session-storage.ts
+import { Redis } from '@upstash/redis'
+
 export interface PosterSession {
   id: string;
   created_at: Date;
@@ -17,14 +19,23 @@ export interface PosterSession {
   };
 }
 
-// Using a global variable to persist the sessions across API route invocations
-declare global {
-  // eslint-disable-next-line no-var
-  var sessions: Map<string, PosterSession>;
-}
+const redis = new Redis({
+  url: process.env.KV_REST_API_URL,
+  token: process.env.KV_REST_API_TOKEN,
+})
 
-if (!global.sessions) {
-  global.sessions = new Map<string, PosterSession>();
-}
+const SESSION_TTL = 60 * 60; // 1 hour in seconds
 
-export const sessions = global.sessions;
+export const sessions = {
+  async set(sessionId: string, session: PosterSession) {
+    await redis.set(sessionId, session, { ex: SESSION_TTL });
+  },
+
+  async get(sessionId: string): Promise<PosterSession | null> {
+    return redis.get(sessionId);
+  },
+
+  async delete(sessionId: string) {
+    await redis.del(sessionId);
+  }
+};
