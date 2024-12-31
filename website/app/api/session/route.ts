@@ -33,7 +33,7 @@ async function fetchAlbumData(albumId: string) {
 export async function POST(request: Request) {
   try {
     const { albumId } = await request.json();
-    // console.log('Creating session for album:', albumId);
+    console.log('Creating session for album:', albumId);
 
     const albumData = await fetchAlbumData(albumId);
     // console.log('Album Info:\n', albumData);
@@ -56,8 +56,8 @@ export async function POST(request: Request) {
       sessions.delete(sessionId);
     }, 30 / 60 * 60 * 60 * 1000); // 5 minutes for testing
 
-    // console.log(`Session created with id: ${sessionId}`);
-    // console.log('Current sessions:', sessions.size);
+    console.log(`Session created with id: ${sessionId}`);
+    console.log('Current sessions:', sessions.size);
 
     return NextResponse.json({ sessionId, session });
 
@@ -79,8 +79,8 @@ export async function GET(request: Request) {
   }
 
   const session = sessions.get(sessionId);
-  // console.log(`Getting session ${sessionId}`, session ? 'found' : 'not found');
-  // console.log('Current sessions:', sessions.size);
+  console.log(`Getting session ${sessionId}`, session ? 'found' : 'not found');
+  console.log('Current sessions:', sessions.size);
 
   if (!session) {
     return NextResponse.json(
@@ -107,7 +107,7 @@ export async function PUT(request: Request) {
   };
 
   sessions.set(sessionId, updatedSession);
-  // console.log(`Updated session ${sessionId}`);
+  console.log(`Updated session ${sessionId}`);
 
   return NextResponse.json(updatedSession);
 }
