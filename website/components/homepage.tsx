@@ -40,14 +40,14 @@ export function HomepageComponent() {
     setSearchResults([]); // Clear previous results
     setIsLoading(true) // Start loading
     try {
-      
+
       const response = await fetch(`/api/search?query=${encodeURIComponent(searchQuery)}&quantity=8`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
       });
-      
+
       if (response.ok) {
         const data = await response.json();  // This already gives you a parsed object
         if (data.error) {
@@ -102,7 +102,7 @@ export function HomepageComponent() {
         console.error("Cannot generate poster, no album is selected.");
         return;
       }
-  
+
       // Create session
       const response = await fetch('/api/session', {
         method: 'POST',
@@ -113,16 +113,16 @@ export function HomepageComponent() {
           albumId: selectedAlbum.id
         })
       });
-  
+
       if (!response.ok) {
         throw new Error('Failed to create session');
       }
-  
+
       const { sessionId } = await response.json();
-  
+
       // Navigate to customize page with session ID
       window.location.href = `/customize/${sessionId}`;
-      
+
     } catch (error) {
       console.error("Error generating poster:", error);
       // Show an error message to the user here
@@ -132,20 +132,32 @@ export function HomepageComponent() {
 
   return (
     <div className="min-h-screen bg-smoky_black-100 text-alabaster-600">
-      <header className="py-12">
-        <h1 className="wosker text-4xl font-bold text-center text-[#e5e5dc]">PosterOven</h1>
+      <header className="pt-8">
+        <h1 className="wosker-xxl font-semi text-center text-[#e5e5dc]">PosterOven</h1>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-2">
         <section className="mb-12">
-          <form onSubmit={handleSearch} className="flex justify-center mb-8">
-            <Input
-              type="search"
-              name="search"
-              placeholder="Search for albums or artists"
-              className="w-full max-w-2xl text-lg py-6 bg-[#191308] text-[#e5e5dc] border-[#322a26] placeholder-[#988d93]"
-            />
-          </form>
+          <div className="flex justify-center items-center mb-8 space-x-4">
+            <form onSubmit={handleSearch} className="flex-grow max-w-[50%]">
+              <Input
+                type="search"
+                name="search"
+                placeholder="Search for albums or artists"
+                autoComplete='off'
+                className="w-full text-med py-6 bg-[#191308] text-[#e5e5dc] border-[#322a26] placeholder-[#988d93]"
+              />
+            </form>
+
+            <Button
+              size="lg"
+              onClick={generatePoster}
+              disabled={!selectedResult}
+              className={`px-8 py-4 text-m ${selectedResult ? 'bg-[#f5853f] hover:bg-[#f79c64] text-[#050401]' : 'bg-[#322a26] text-[#988d93]'}`}
+            >
+              Generate Poster
+            </Button>
+          </div>
 
           {isLoading ? (
             <div className="flex justify-center items-center mt-8">
@@ -154,13 +166,17 @@ export function HomepageComponent() {
           ) : (
             searchResults.length > 0 && (
               <div className="mb-12">
-                <h2 className="text-2xl font-semibold mb-4 text-[#e5e5dc]">Search Results</h2>
+                <h2 className="wosker-med mb-4 text-[#e5e5dc]">Search Results</h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {searchResults.map((result) => (
                     <Card
                       key={result.id}
                       className={`cursor-pointer transition-all duration-300 hover:bg-[#322a26] ${selectedResult === result.id ? 'bg-[#322a26]' : 'bg-[#191308]'}`}
                       onClick={() => setSelectedResult(result.id)}
+                      onDoubleClick={() => {
+                        setSelectedResult(result.id); // Ensure it's selected
+                        generatePoster(); // Call the poster generation handler
+                      }}
                     >
                       <CardContent className="p-4 rounded-lg">
                         <Image
@@ -188,28 +204,18 @@ export function HomepageComponent() {
                   </Button>
                 </div>
 
-                <div className="text-center mt-8">
-                  <Button
-                    size="lg"
-                    onClick={generatePoster}
-                    disabled={!selectedResult}
-                    className={`px-8 py-4 text-lg ${selectedResult ? 'bg-[#f5853f] hover:bg-[#f79c64] text-[#050401]' : 'bg-[#322a26] text-[#988d93]'}`}
-                  >
-                    Generate Poster
-                  </Button>
-                </div>
               </div>
             )
           )}
         </section>
 
         <section className="mb-12">
-          <h2 className="text-2xl font-semibold mb-4 text-[#e5e5dc]">Featured Posters</h2>
+        <p className="wosker-med text-base mb-4 text-[#e5e5dc] py-4">Featured Posters</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {preGeneratedPosters.map((poster) => (
-              <Card key={poster.id} className="bg-[#191308] border-[#322a26]">
-                <CardContent className="p-4">
-                  <Image src={poster.src} alt={`Poster ${poster.id}`} width={200} height={300} className="rounded-lg" />
+              <Card key={poster.id} className="bg-[#191308] border-[#322a26] flex justify-center items-center">
+                <CardContent className="p-4 flex justify-center items-center">
+                  <Image src={poster.src} alt={`Poster ${poster.id}`} width={280} height={400} className="rounded-lg" />
                 </CardContent>
               </Card>
             ))}
