@@ -30,7 +30,7 @@ export default function Customizer() {
     const params = useParams();
     const [posterData, setPosterData] = useState<AlbumData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [isPosterLoading, setIsPosterLoading] = useState(false);
+    const [isPosterLoading, setIsPosterLoading] = useState(true);
     const [updateTimestamp, setUpdateTimestamp] = useState<number>(Date.now());
 
     useEffect(() => {
@@ -92,6 +92,41 @@ export default function Customizer() {
         }
     };
 
+    const handleTracklistChange = async (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+
+        setPosterData(prev => {
+            if (!prev) return null;
+            return {
+                ...prev,
+                [name]: name === 'tracklist' ? value.split('\n') : value,
+            };
+        });
+
+        setIsPosterLoading(true);
+
+        try {
+            await fetch('/api/session', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    sessionId: params.sessionId,
+                    updates: {
+                        album_data: {
+                            ...posterData,
+                            [name]: name === 'tracklist' ? value.split('\n') : value,
+                        }
+                    }
+                })
+            });
+            setUpdateTimestamp(Date.now());
+        } catch (error) {
+            console.error('Error updating session:', error);
+        }
+    };
+
     const handleDownloadPoster = async () => {
         if (!posterData) return;
 
@@ -129,8 +164,16 @@ export default function Customizer() {
 
     if (!posterData) {
         return (
-            <div className="flex justify-center items-center min-h-screen bg-smoky_black-100">
-                <div className="text-[#e5e5dc]">Session not found</div>
+            <div className="flex flex-col justify-center items-center min-h-screen bg-smoky_black-100 space-y-4">
+                <div className="text-[#e5e5dc] text-center">
+                    <p className="mt-2">Oops! It looks like your session has expired. Sessions expire an hour from creation, back to the lobby!</p>
+                </div>
+                <Button
+                    onClick={() => window.location.href = '/'}
+                    className="px-6 py-3 bg-[#f5853f] hover:bg-[#f79c64] text-[#050401] rounded-lg"
+                >
+                    Return to Homepage
+                </Button>
             </div>
         );
     }
@@ -149,13 +192,13 @@ export default function Customizer() {
                                 </div>
                             </div>
                         )}
-                        <div className="relative w-full h-[calc(100vh-8rem)] flex items-center justify-center">
+                        <div className="relative w-full h-[calc(100vh-8rem)] flex items-center justify-center overflow-hidden rounded-2xl">
                             <Image
                                 src={`/api/poster?id=${params.sessionId}&t=${updateTimestamp}`}
                                 alt={posterData.album_name}
                                 fill
-                                style={{ objectFit: 'contain' }}
-                                className="rounded-lg"
+                                style={{ objectFit: 'contain', borderRadius: '1rem' }}
+                                className="rounded-2xl"
                                 onLoadingComplete={() => setIsPosterLoading(false)}
                                 priority
                             />
@@ -163,57 +206,66 @@ export default function Customizer() {
                     </div>
                 </div>
 
-                <div className="lg:w-1/2 flex flex-col gap-6 overflow-y-auto p-4">
-                    <h1 className="text-3xl font-bold p-4 text-center text-[#e5e5dc]">Customize Your Poster</h1>
-                    <div className="flex items-center space-x-4">
-                        <label className="text-[#e5e5dc] text-sm w-32">Album Name</label>
-                        <Input
-                            type="text"
-                            name="album_name"
-                            value={posterData.album_name}
-                            onChange={handleInputChange}
-                            className="flex-1 bg-[#191308] text-[#e5e5dc] border-[#322a26]"
-                        />
-                    </div>
-                    <div className="flex items-center space-x-4">
-                        <label className="text-[#e5e5dc] text-sm w-32">Artist Name</label>
-                        <Input
-                            type="text"
-                            name="artist_name"
-                            value={posterData.artist_name}
-                            onChange={handleInputChange}
-                            className="flex-1 bg-[#191308] text-[#e5e5dc] border-[#322a26]"
-                        />
-                    </div>
-                    <div className="flex items-center space-x-4">
-                        <label className="text-[#e5e5dc] text-sm w-32">Tracklist</label>
-                        <Textarea
-                            name="tracklist"
-                            value={posterData.tracklist.join("\n")}
-                            onChange={handleInputChange}
-                            placeholder="Tracklist (one per line)"
-                            className="bg-[#191308] text-[#e5e5dc] border-[#322a26] h-32"
-                        />
-                    </div>
-                    <div className="flex items-center space-x-4">
-                        <label className="text-[#e5e5dc] text-sm w-32">Copyright Text</label>
-                        <Input
-                            type="text"
-                            name="copyright_text"
-                            value={posterData.copyright_text}
-                            onChange={handleInputChange}
-                            placeholder="Copyright Text"
-                            className="bg-[#191308] text-[#e5e5dc] border-[#322a26]"
-                        />
+                <div className="lg:w-1/2 flex flex-col justify-between p-6">
+                    <div className="space-y-8">  {/* Container for form elements with consistent spacing */}
+                        <h1 className="wosker-med text-center text-[#e5e5dc]">
+                            Customize Your Poster
+                        </h1>
+
+                        <div className="flex items-start space-x-4">
+                            <label className="text-[#e5e5dc] text-sm w-32 pt-2">Album Name</label>
+                            <Input
+                                type="text"
+                                name="album_name"
+                                value={posterData.album_name}
+                                onChange={handleInputChange}
+                                className="flex-1 bg-[#191308] text-[#e5e5dc] border-[#322a26]"
+                            />
+                        </div>
+
+                        <div className="flex items-start space-x-4">
+                            <label className="text-[#e5e5dc] text-sm w-32 pt-2">Artist Name</label>
+                            <Input
+                                type="text"
+                                name="artist_name"
+                                value={posterData.artist_name}
+                                onChange={handleInputChange}
+                                className="flex-1 bg-[#191308] text-[#e5e5dc] border-[#322a26]"
+                            />
+                        </div>
+
+                        <div className="flex items-start space-x-4">
+                            <label className="text-[#e5e5dc] text-sm w-32 pt-2">Tracklist</label>
+                            <Textarea
+                                name="tracklist"
+                                value={Array.isArray(posterData.tracklist) ? posterData.tracklist.join("\n") : posterData.tracklist || ''}
+                                onChange={handleTracklistChange}
+                                placeholder="Tracklist (one per line)"
+                                className="flex-1 bg-[#191308] text-[#e5e5dc] border-[#322a26] h-32"
+                            />
+                        </div>
+
+                        <div className="flex items-start space-x-4">
+                            <label className="text-[#e5e5dc] text-sm w-32 pt-2">Copyright Text</label>
+                            <Input
+                                type="text"
+                                name="copyright_text"
+                                value={posterData.copyright_text}
+                                onChange={handleInputChange}
+                                placeholder="Copyright Text"
+                                className="flex-1 bg-[#191308] text-[#e5e5dc] border-[#322a26]"
+                            />
+                        </div>
                     </div>
 
-                    <Button
-                        onClick={handleDownloadPoster}
-                        className="mt-4 bg-blue-600 text-white hover:bg-blue-500"
-                    >
-                        Download Poster
-                    </Button>
-
+                    <div className="mt-8">  {/* Container for button */}
+                        <Button
+                            onClick={handleDownloadPoster}
+                            className="w-full px-8 py-5 text-white bg-[#f5853f] hover:bg-[#f79c64] text-[#050401]"
+                        >
+                            Download Poster
+                        </Button>
+                    </div>
                 </div>
             </div>
         </div>

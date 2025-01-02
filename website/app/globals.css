@@ -8,12 +8,36 @@ body {
 
 @font-face {
   font-family: 'Wosker';
-  src: url('./fonts/Wosker\ Demo.otf') format('woff2')/* Modern Browsers */
+  src: url('./fonts/Wosker\ Demo.otf') format('woff2'); /* Modern Browsers */
 }
 
 .wosker {
   font-family: 'Wosker', sans-serif; /* Fallback to sans-serif */
-  font-size: 100px;
+}
+
+.wosker-sm {
+  font-family: 'Wosker', sans-serif;
+  font-size: 35px; 
+}
+
+.wosker-med {
+  font-family: 'Wosker', sans-serif;
+  font-size: 50px; /* Adjust the size as needed */
+}
+
+.wosker-l {
+  font-family: 'Wosker', sans-serif;
+  font-size: 60px; /* Adjust the size as needed */
+}
+
+.wosker-xl {
+  font-family: 'Wosker', sans-serif;
+  font-size: 80px; /* Adjust the size as needed */
+}
+
+.wosker-xxl {
+  font-family: 'Wosker', sans-serif;
+  font-size: 100px; /* Adjust the size as needed */
 }
 
 @layer utilities {
